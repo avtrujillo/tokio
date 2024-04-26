@@ -399,13 +399,13 @@ fn parse_knobs(mut input: ItemFn, is_test: bool, config: FinalConfig) -> TokenSt
             syn::ReturnType::Default => quote! { () },
             syn::ReturnType::Type(_, ret_type) => quote! { #ret_type },
         };
-        quote_spanned! {last_stmt_start_span=>
+        quote_spanned! {last_stmt_end_span=>
             let body = async #body;
             #crate_path::pin!(body);
             let body: ::core::pin::Pin<&mut dyn ::core::future::Future<Output = #output_type>> = body;
         }
     } else {
-        quote_spanned! {last_stmt_start_span=>
+        quote_spanned! {last_stmt_end_span=>
             let body = async #body;
         }
     };
