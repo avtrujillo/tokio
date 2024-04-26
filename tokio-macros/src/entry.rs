@@ -1,6 +1,7 @@
 use proc_macro2::{Span, TokenStream, TokenTree};
 use quote::{quote, quote_spanned, ToTokens};
 use syn::parse::{Parse, ParseStream, Parser};
+use syn::spanned::Spanned;
 use syn::{braced, Attribute, Ident, Path, Signature, Visibility};
 
 // syn::AttributeArgs does not implement syn::Parse
@@ -380,6 +381,7 @@ fn parse_knobs(mut input: ItemFn, is_test: bool, config: FinalConfig) -> TokenSt
         }
     };
 
+    let body_span = input.body().to_token_stream().span();
     let body = input.body();
 
     // For test functions pin the body to the stack and use `Pin<&mut dyn
@@ -399,13 +401,13 @@ fn parse_knobs(mut input: ItemFn, is_test: bool, config: FinalConfig) -> TokenSt
             syn::ReturnType::Default => quote! { () },
             syn::ReturnType::Type(_, ret_type) => quote! { #ret_type },
         };
-        quote_spanned! {last_stmt_end_span=>
+        quote_spanned! {body_span=>
             let body = async #body;
             #crate_path::pin!(body);
             let body: ::core::pin::Pin<&mut dyn ::core::future::Future<Output = #output_type>> = body;
         }
     } else {
-        quote_spanned! {last_stmt_end_span=>
+        quote_spanned! {body_span=>
             let body = async #body;
         }
     };
