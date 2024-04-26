@@ -349,7 +349,7 @@ fn parse_knobs(mut input: ItemFn, is_test: bool, config: FinalConfig) -> TokenSt
         RuntimeFlavor::CurrentThread => quote_spanned! {last_stmt_start_span=>
             #crate_path::runtime::Builder::new_current_thread()
         },
-        RuntimeFlavor::Threaded => quote_spanned! {last_stmt_start_span=>
+        RuntimeFlavor::Threaded => quote! {
             #crate_path::runtime::Builder::new_multi_thread()
         },
     };
@@ -399,13 +399,13 @@ fn parse_knobs(mut input: ItemFn, is_test: bool, config: FinalConfig) -> TokenSt
             syn::ReturnType::Default => quote! { () },
             syn::ReturnType::Type(_, ret_type) => quote! { #ret_type },
         };
-        quote! {
+        quote_spanned! {last_stmt_start_span=>
             let body = async #body;
             #crate_path::pin!(body);
             let body: ::core::pin::Pin<&mut dyn ::core::future::Future<Output = #output_type>> = body;
         }
     } else {
-        quote! {
+        quote_spanned! {last_stmt_start_span=>
             let body = async #body;
         }
     };
